@@ -6,6 +6,7 @@ import hbs = require('hbs');
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Force Update Vercel
 
   // ✅ CRUCIAL POUR LA PWA : On ouvre les vannes (CORS)
   // Cela permet à votre site Web (et à l'app mobile) de discuter avec le serveur
