@@ -11,9 +11,14 @@ export class Demande {
   @Column({ default: 'EN_ATTENTE' })
   statut: string; 
 
-  // 💰 NOUVEAU : Mode de paiement (ESPECES, ASSURANCE, MOBILE_MONEY)
+  // Mode de paiement (ESPECES, ASSURANCE, MOBILE_MONEY)
   @Column({ default: 'ESPECES' })
   modePaiement: string;
+
+  // ✅ NOUVEAU : Le Code de Retrait Sécurisé (ex: 8943)
+  // C'est ce code que le coursier devra donner au pharmacien
+  @Column({ nullable: true })
+  codeRetrait: string;
 
   @Column({ nullable: true })
   pharmacieId: string;

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,46 +13,50 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // 1. Inscription
-  async inscription(nom: string, email: string, mdp: string) {
-    // Génération du sel et hachage
-    const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(mdp, salt);
+  // ✅ 1. Validation via Téléphone (Utilisé par le Controller)
+  async validateUser(telephone: string, pass: string): Promise<any> {
+    const user = await this.userRepo.findOne({ where: { telephone } });
+    
+    // Si l'utilisateur existe et que le mot de passe correspond
+    if (user && await bcrypt.compare(pass, user.motDePasse)) {
+      const { motDePasse, ...result } = user;
+      return result;
+    }
+    return null;
+  }
 
-    // Création de l'entité
-    const user = this.userRepo.create({ 
-        nomComplet: nom, 
-        email, 
-        motDePasse: hash 
+  // ✅ 2. Génération du Token (Payload avec Téléphone)
+  async login(user: any) {
+    const payload = { telephone: user.telephone, sub: user.id, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  // ✅ 3. Inscription via Téléphone
+  async inscription(nom: string, telephone: string, pass: string, role: string = 'CLIENT') {
+    // Vérification si le numéro existe déjà
+    const exist = await this.userRepo.findOne({ where: { telephone } });
+    if (exist) {
+      throw new ConflictException('Ce numéro de téléphone est déjà utilisé.');
+    }
+
+    // Hachage du mot de passe
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(pass, salt);
+
+    const newUser = this.userRepo.create({
+      nomComplet: nom,
+      telephone: telephone, // Stockage du numéro
+      motDePasse: hash,
+      role: role
     });
 
     try {
-        await this.userRepo.save(user);
-        return { message: "Inscription réussie !" };
+      await this.userRepo.save(newUser);
+      return { status: 201, message: "Inscription réussie !" };
     } catch (error) {
-        // Si le code erreur est lié à une contrainte unique (doublon email)
-        // Note: Le code '23505' est spécifique à Postgres, mais ConflictException est générique
-        throw new ConflictException('Cet email est déjà utilisé.');
+      throw new ConflictException('Erreur lors de l\'inscription.');
     }
-  }
-
-  // 2. Connexion
-  async connexion(email: string, mdp: string) {
-    const user = await this.userRepo.findOne({ where: { email } });
-
-    // On vérifie le mot de passe crypté
-    if (user && (await bcrypt.compare(mdp, user.motDePasse))) {
-      // Si c'est bon, on crée le TOKEN (le badge)
-      // 'sub' (Subject) est le standard pour l'ID utilisateur dans un JWT
-      const payload = { email: user.email, sub: user.id };
-      
-      return {
-        access_token: this.jwtService.sign(payload),
-        nom: user.nomComplet // Requis par le front pour afficher "Bonjour X"
-      };
-    }
-    
-    // Si email inconnu ou mauvais mot de passe
-    throw new UnauthorizedException('Identifiants incorrects');
   }
 }

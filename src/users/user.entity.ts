@@ -3,13 +3,17 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeor
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string; // ou userId selon votre convention précédente
 
+  // ✅ CHANGEMENT : Identifiant unique par téléphone
   @Column({ unique: true })
-  email: string;
+  telephone: string;
 
   @Column()
-  motDePasse: string; // Ce sera stocké crypté
+  motDePasse: string;
+
+  @Column({ default: 'CLIENT' })
+  role: string; // 'CLIENT', 'PHARMACIEN', 'ADMIN'
 
   @Column()
   nomComplet: string;

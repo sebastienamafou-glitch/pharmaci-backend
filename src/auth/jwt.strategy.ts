@@ -6,13 +6,14 @@ import { Injectable } from '@nestjs/common';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Le token est dans le Header
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'SECRET_PHARMACI_KEY', // ⚠️ En prod, mettre ça dans un fichier .env
+      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY',
     });
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email };
+    // ✅ Le payload contient maintenant 'telephone'
+    return { userId: payload.sub, telephone: payload.telephone, role: payload.role };
   }
 }

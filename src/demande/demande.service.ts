@@ -10,12 +10,15 @@ export class DemandeService {
     private repoDemande: Repository<Demande>, 
   ) {}
 
-  // ✅ MISE A JOUR : Ajout du paramètre paiement
   async creerDemande(medicament: string, lat: number, lon: number, paiement: string = 'ESPECES') {
+    // ✅ Génération d'un code aléatoire entre 1000 et 9999
+    const codeSecret = Math.floor(1000 + Math.random() * 9000).toString();
+
     const nouvelleDemande = this.repoDemande.create({
       medicamentNom: medicament,
       statut: 'EN_ATTENTE',
-      modePaiement: paiement, // On enregistre le choix
+      modePaiement: paiement,
+      codeRetrait: codeSecret, // ✅ On sauvegarde le code unique ici
       positionClient: {
         type: 'Point',
         coordinates: [lon, lat],
