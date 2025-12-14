@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 // Entités
 import { Pharmacie } from './pharmacie/pharmacie.entity';
 import { Demande } from './demande/demande.entity';
-import { User } from './users/user.entity'; // <--- AJOUT
+import { User } from './users/user.entity';
 
 // Controllers & Services
 import { PharmacieController } from './pharmacie/pharmacie.controller';
@@ -15,43 +15,57 @@ import { MedicamentController } from './medicament/medicament.controller';
 import { MedicamentService } from './medicament/medicament.service';
 import { DemandeController } from './demande/demande.controller';
 import { DemandeService } from './demande/demande.service';
-import { AuthController } from './auth/auth.controller'; // <--- AJOUT
-import { AuthService } from './auth/auth.service';       // <--- AJOUT
-import { JwtStrategy } from './auth/jwt.strategy';       // <--- AJOUT
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { JwtStrategy } from './auth/jwt.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
+      // ✅ CORRECTION CRITIQUE : Utilisation de l'URL pour la production (Neon)
+      // Si process.env.DATABASE_URL est défini (par Render), on l'utilise.
+      // Sinon, on revient à la configuration localhost pour le développement.
+      url: process.env.DATABASE_URL,
+      
+      // Si l'URL n'est pas définie (mode dev local), on utilise les détails ci-dessous.
+      // TypeORM utilise soit 'url' soit 'host'/'port'.
+      host: process.env.DATABASE_URL ? undefined : 'localhost',
+      port: process.env.DATABASE_URL ? undefined : 5432,
+      username: process.env.DATABASE_URL ? undefined : 'pharmaci_admin',
+      password: process.env.DATABASE_URL ? undefined : 'pharmaci_password',
+      database: process.env.DATABASE_URL ? undefined : 'pharmaci_db',
+      
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'pharmaci_admin',
-      password: 'pharmaci_password',
-      database: 'pharmaci_db',
-      entities: [Pharmacie, Demande, User], // <--- AJOUTER USER
+      entities: [Pharmacie, Demande, User],
       synchronize: true,
+
+      // ⚠️ IMPORTANT pour Neon/Render : Activer le SSL pour la connexion distante
+      ssl: process.env.DATABASE_URL ? {
+        rejectUnauthorized: false,
+      } : false,
     }),
-    TypeOrmModule.forFeature([Pharmacie, Demande, User]), // <--- AJOUTER USER
+    TypeOrmModule.forFeature([Pharmacie, Demande, User]),
     
     // Configuration de la sécurité JWT
     PassportModule,
     JwtModule.register({
-      secret: 'SECRET_PHARMACI_KEY', // Le même secret que dans jwt.strategy
-      signOptions: { expiresIn: '1d' }, // Le token dure 1 jour
+      // ✅ SÉCURITÉ : Utiliser une variable d'environnement pour le secret JWT
+      secret: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', 
+      signOptions: { expiresIn: '1d' }, 
     }),
   ],
   controllers: [
     PharmacieController, 
     MedicamentController, 
     DemandeController, 
-    AuthController // <--- AJOUT
+    AuthController
   ],
   providers: [
     PharmacieService, 
     MedicamentService, 
     DemandeService, 
-    AuthService,  // <--- AJOUT
-    JwtStrategy   // <--- AJOUT
+    AuthService,
+    JwtStrategy
   ],
 })
 export class AppModule {}
