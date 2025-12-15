@@ -1,23 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch';
+import { InjectMeiliSearch } from 'nestjs-meilisearch'; // 👈 IMPORTANT : Nouvel import
 
 @Injectable()
 export class MedicamentService {
-  private client: MeiliSearch;
+  // On ne crée plus le client manuellement avec "new MeiliSearch"
+  // On demande à NestJS de nous donner celui configuré dans app.module.ts
+  constructor(
+    @InjectMeiliSearch() private readonly client: MeiliSearch
+  ) {}
 
-  constructor() {
-    // Connexion au serveur Meilisearch qu'on vient de lancer
-    this.client = new MeiliSearch({
-      host: 'http://localhost:7700',
-      apiKey: 'pharmaMasterKey123', // La clé définie à l'étape 1
-    });
-  }
-
-  // Fonction pour charger des faux médicaments (Seed)
   async chargerDonneesInitiales() {
     const index = this.client.index('medicaments');
 
-    // Une liste fictive pour tester le MVP
     const medicaments = [
       { id: 1, nom: 'Doliprane 1000mg', description: 'Paracétamol, fièvre et douleurs', forme: 'Comprimé' },
       { id: 2, nom: 'Doliprane 500mg', description: 'Paracétamol enfant', forme: 'Gélule' },
@@ -32,12 +27,10 @@ export class MedicamentService {
     return await index.addDocuments(medicaments);
   }
 
-  // La recherche intelligente
   async rechercher(query: string) {
     const index = this.client.index('medicaments');
-    // search permet la tolérance aux fautes de frappe par défaut
     return await index.search(query, {
-        limit: 10, // On limite à 10 résultats
+        limit: 10,
     });
   }
 }
