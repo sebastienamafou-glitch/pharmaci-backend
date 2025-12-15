@@ -2,71 +2,128 @@
 <html lang="fr" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion Pro - PharmaCi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Pro - PharmaCi</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="h-full flex items-center justify-center font-sans">
-    <div class="max-w-md w-full space-y-8 p-10 bg-white shadow-xl rounded-xl">
-        <div class="text-center">
-            <img class="mx-auto h-16 w-auto" src="/images/logo.png" alt="PharmaCi Pro">
-            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Espace Pharmacien</h2>
-            <p class="mt-2 text-sm text-gray-600">Connectez-vous pour gérer les demandes.</p>
-        </div>
-        <form class="mt-8 space-y-6" id="loginForm">
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div>
-                    <label for="email" class="sr-only">Email</label>
-                    <input id="email" name="email" type="email" required class="appearance-none rounded-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm" placeholder="Email professionnel">
-                </div>
-                <div>
-                    <label for="password" class="sr-only">Mot de passe</label>
-                    <input id="password" name="password" type="password" required class="appearance-none rounded-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm" placeholder="Mot de passe">
-                </div>
-            </div>
+<body class="h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-100">
 
-            <div>
-                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <svg class="h-5 w-5 text-green-500 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
-                    </span>
-                    Se connecter au Dashboard
-                </button>
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            <i class="fa-solid fa-staff-snake text-5xl text-green-700"></i>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Portail National PharmaCi
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Accès réservé aux Pharmaciens & Administrateurs
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border-t-4 border-green-600">
+            <form class="space-y-6" id="loginForm">
+                
+                <div>
+                    <label for="telephone" class="block text-sm font-medium text-gray-700">
+                        Identifiant Pro (Téléphone)
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-phone text-gray-400"></i>
+                        </div>
+                        <input id="telephone" name="telephone" type="tel" required 
+                            class="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border" 
+                            placeholder="ex: 0707...">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">
+                        Mot de passe
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-gray-400"></i>
+                        </div>
+                        <input id="password" name="password" type="password" required 
+                            class="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                        Accéder à l'espace sécurisé
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            Support Technique
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-2 text-center text-xs text-gray-400">
+                    En cas de problème d'accès, contactez la Direction de la Pharmacie.
+                </div>
             </div>
-            <div id="errorMsg" class="text-red-500 text-center text-sm hidden">Identifiants incorrects.</div>
-        </form>
+            
+            <div id="errorMsg" class="mt-4 text-center text-sm font-medium text-red-600 hidden"></div>
+        </div>
     </div>
 
     <script>
-        // Petite logique JS pour gérer la connexion et rediriger vers le dashboard
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const telephone = document.getElementById('telephone').value;
             const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // On réinitialise l'erreur
+            errorMsg.classList.add('hidden');
 
             try {
+                // ✅ Appel API avec le format Téléphone
                 const res = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ telephone, password }) 
                 });
 
+                const data = await res.json();
+
                 if (res.ok) {
-                    const data = await res.json();
-                    // On stocke le token (pour une V2 plus sécurisée, on utiliserait des Cookies HttpOnly)
+                    // Stockage du Token
                     localStorage.setItem('token', data.access_token);
-                    
-                    // Si c'est un pharmacien ou admin, on redirige
-                    if(data.role === 'PHARMACIEN' || data.role === 'ADMIN') {
-                        window.location.href = '/demandes/dashboard';
+                    localStorage.setItem('userRole', data.role);
+                    localStorage.setItem('userName', data.nom);
+
+                    // 🔀 Redirection Intelligente selon le Rôle
+                    if (data.role === 'ADMIN') {
+                        window.location.href = '/auth/web/admin'; // Vers le Ministère
+                    } else if (data.role === 'PHARMACIEN') {
+                        window.location.href = '/demandes/dashboard'; // Vers la Pharmacie
                     } else {
-                        alert("Accès refusé : Espace réservé aux pharmaciens.");
+                        // Si un client essaie de se connecter ici
+                        errorMsg.textContent = "Accès refusé aux clients Mobile.";
+                        errorMsg.classList.remove('hidden');
                     }
                 } else {
-                    document.getElementById('errorMsg').classList.remove('hidden');
+                    errorMsg.textContent = "⛔ " + (data.message || "Erreur de connexion");
+                    errorMsg.classList.remove('hidden');
                 }
             } catch (err) {
                 console.error(err);
+                errorMsg.textContent = "Erreur de communication avec le serveur";
+                errorMsg.classList.remove('hidden');
             }
         });
     </script>
