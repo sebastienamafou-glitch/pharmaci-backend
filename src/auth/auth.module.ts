@@ -9,8 +9,8 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]), // Permet d'injecter Repository<User>
-    PassportModule,
+    TypeOrmModule.forFeature([User]), 
+    PassportModule.register({ defaultStrategy: 'jwt' }), // ✅ Configuration explicite
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY',
       signOptions: { expiresIn: '1d' },
@@ -18,6 +18,6 @@ import { JwtStrategy } from './jwt.strategy';
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, JwtStrategy, PassportModule], // ✅ EXPORT CRUCIAL pour que les autres modules (Demande) puissent vérifier le token
 })
 export class AuthModule {}

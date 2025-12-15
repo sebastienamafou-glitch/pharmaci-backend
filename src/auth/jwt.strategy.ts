@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -8,12 +8,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY',
+      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', // Doit matcher auth.module.ts
     });
   }
 
   async validate(payload: any) {
-    // ✅ Le payload contient maintenant 'telephone'
+    // Si le token est valide (signature OK), cette fonction est appelée.
+    if (!payload) {
+      throw new UnauthorizedException();
+    }
+    // On renvoie l'objet qui sera injecté dans 'req.user'
     return { userId: payload.sub, telephone: payload.telephone, role: payload.role };
   }
 }
