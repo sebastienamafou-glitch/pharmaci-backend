@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { MeiliSearchModule } from 'nestjs-meilisearch'; // 👈 1. Vérifiez cet import
 
 // Entités
 import { Pharmacie } from './pharmacie/pharmacie.entity';
@@ -46,7 +47,12 @@ import { JwtStrategy } from './auth/jwt.strategy';
     }),
     TypeOrmModule.forFeature([Pharmacie, Demande, User]),
     
-    // Configuration de la sécurité JWT
+    // 👇 2. C'EST CETTE PARTIE QUI MANQUE SUR VOTRE SERVEUR
+    MeiliSearchModule.forRoot({
+      host: process.env.MEILI_HOST || 'http://localhost:7700',
+      apiKey: process.env.MEILI_KEY || 'masterKey',
+    }),
+    
     PassportModule,
     JwtModule.register({
       // ✅ SÉCURITÉ : Utiliser une variable d'environnement pour le secret JWT
