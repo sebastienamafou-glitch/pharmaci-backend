@@ -3,9 +3,8 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeor
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string; // ou userId selon votre convention précédente
+  id: string; 
 
-  // ✅ CHANGEMENT : Identifiant unique par téléphone
   @Column({ unique: true })
   telephone: string;
 
@@ -13,10 +12,17 @@ export class User {
   motDePasse: string;
 
   @Column({ default: 'CLIENT' })
-  role: string; // 'CLIENT', 'PHARMACIEN', 'ADMIN'
+  role: string; 
 
   @Column()
   nomComplet: string;
+
+  // ✅ NOUVEAU : Gestion Abonnement
+  @Column({ default: 'STANDARD' }) // 'STANDARD' ou 'PREMIUM'
+  abonnementType: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  finAbonnement: Date;
 
   @CreateDateColumn()
   dateInscription: Date;

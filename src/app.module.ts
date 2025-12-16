@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { MeiliSearchModule } from 'nestjs-meilisearch'; // 👈 1. Vérifiez cet import
+import { MeiliSearchModule } from 'nestjs-meilisearch';
+import { UsersModule } from './users/users.module'; // ✅ 1. Import correct
 
 // Entités
 import { Pharmacie } from './pharmacie/pharmacie.entity';
@@ -23,13 +24,9 @@ import { JwtStrategy } from './auth/jwt.strategy';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      // ✅ CORRECTION CRITIQUE : Utilisation de l'URL pour la production (Neon)
-      // Si process.env.DATABASE_URL est défini (par Render), on l'utilise.
-      // Sinon, on revient à la configuration localhost pour le développement.
       url: process.env.DATABASE_URL,
       
-      // Si l'URL n'est pas définie (mode dev local), on utilise les détails ci-dessous.
-      // TypeORM utilise soit 'url' soit 'host'/'port'.
+      // Configuration fallback (local)
       host: process.env.DATABASE_URL ? undefined : 'localhost',
       port: process.env.DATABASE_URL ? undefined : 5432,
       username: process.env.DATABASE_URL ? undefined : 'pharmaci_admin',
@@ -38,27 +35,26 @@ import { JwtStrategy } from './auth/jwt.strategy';
       
       type: 'postgres',
       entities: [Pharmacie, Demande, User],
-      synchronize: true,
-
-      // ⚠️ IMPORTANT pour Neon/Render : Activer le SSL pour la connexion distante
-      ssl: process.env.DATABASE_URL ? {
-        rejectUnauthorized: false,
-      } : false,
+      synchronize: true, // À mettre à false en vraie prod pour utiliser les migrations
+      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
     }),
+    
     TypeOrmModule.forFeature([Pharmacie, Demande, User]),
     
-    // 👇 2. C'EST CETTE PARTIE QUI MANQUE SUR VOTRE SERVEUR
     MeiliSearchModule.forRoot({
       host: process.env.MEILI_HOST || 'http://localhost:7700',
       apiKey: process.env.MEILI_KEY || 'masterKey',
     }),
     
     PassportModule,
+    
     JwtModule.register({
-      // ✅ SÉCURITÉ : Utiliser une variable d'environnement pour le secret JWT
       secret: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', 
       signOptions: { expiresIn: '1d' }, 
     }),
+
+    // ✅ 2. CORRECTION : UsersModule est ici (dans imports)
+    UsersModule, 
   ],
   controllers: [
     PharmacieController, 
@@ -71,7 +67,8 @@ import { JwtStrategy } from './auth/jwt.strategy';
     MedicamentService, 
     DemandeService, 
     AuthService,
-    JwtStrategy
+    JwtStrategy 
+    // ❌ UsersModule RETIRÉ d'ici (ce n'est pas un provider)
   ],
 })
 export class AppModule {}
