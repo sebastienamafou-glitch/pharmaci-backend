@@ -211,6 +211,36 @@
                 window.location.reload();
             }
         }, 10000);
+
+    <script src="/js/dashboard.js"></script>
+
+    <script>
+        // Vérification que le navigateur supporte les Service Workers
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker
+                    .register('/sw.js')
+                    .then(reg => console.log('Service Worker enregistré ! Scope:', reg.scope))
+                    .catch(err => console.log('Erreur Service Worker:', err));
+            });
+        }
+
+        // Détection du statut en ligne / hors-ligne pour l'UX
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+            const statusDiv = document.getElementById('gpsStatus'); // On réutilise le div du header
+            if (navigator.onLine) {
+                statusDiv.innerHTML = '<span class="text-green-300">En ligne 🟢</span>';
+                statusDiv.classList.remove('animate-pulse');
+            } else {
+                statusDiv.innerHTML = '<span class="text-red-300 font-bold">HORS LIGNE 🔴 (Cache)</span>';
+                statusDiv.classList.add('animate-pulse');
+                alert("Attention : Vous avez perdu la connexion internet. L'application fonctionne en mode restreint.");
+            }
+        }
     </script>
 </body>
-</html>
+</html>    
+
