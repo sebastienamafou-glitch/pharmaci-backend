@@ -16,7 +16,7 @@
                 Portail National PharmaCi
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600">
-                Accès réservé aux Pharmaciens & Administrateurs
+                Accès réservé : Ministère, Pharmaciens & Livreurs
             </p>
         </div>
     </div>
@@ -72,7 +72,7 @@
                     </div>
                 </div>
                 <div class="mt-2 text-center text-xs text-gray-400">
-                    En cas de problème d'accès, contactez la Direction de la Pharmacie.
+                    En cas de problème d'accès, contactez la Direction.
                 </div>
             </div>
             
@@ -87,11 +87,10 @@
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
 
-            // On réinitialise l'erreur
             errorMsg.classList.add('hidden');
 
             try {
-                // ✅ Appel API avec le format Téléphone
+                // Appel au Backend
                 const res = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -101,23 +100,26 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // Stockage du Token
+                    // 1. On stocke les infos de session
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('userRole', data.role);
                     localStorage.setItem('userName', data.nom);
 
-                    // 🔀 Redirection Intelligente selon le Rôle
-                    if (data.role === 'ADMIN') {
-                        window.location.href = '/auth/web/admin'; // Vers le Ministère
-                    } else if (data.role === 'PHARMACIEN') {
-                        window.location.href = '/demandes/dashboard'; // Vers la Pharmacie
+                    // 2. On vérifie si une redirection est demandée par le serveur
+                    if (data.redirect_to) {
+                        window.location.href = data.redirect_to;
                     } else {
-                        // Si un client essaie de se connecter ici
-                        errorMsg.textContent = "Accès refusé aux clients Mobile.";
-                        errorMsg.classList.remove('hidden');
+                        // Cas spécifique : C'est un client Mobile qui essaie de se connecter sur le Web
+                        if (data.role === 'CLIENT') {
+                            errorMsg.textContent = "⛔ Accès Web refusé. Veuillez utiliser l'application Mobile.";
+                            errorMsg.classList.remove('hidden');
+                        } else {
+                            errorMsg.textContent = "Erreur de configuration du compte.";
+                            errorMsg.classList.remove('hidden');
+                        }
                     }
                 } else {
-                    errorMsg.textContent = "⛔ " + (data.message || "Erreur de connexion");
+                    errorMsg.textContent = "⛔ " + (data.message || "Identifiants incorrects");
                     errorMsg.classList.remove('hidden');
                 }
             } catch (err) {

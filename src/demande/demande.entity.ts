@@ -5,18 +5,19 @@ export class Demande {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // ✅ INDISPENSABLE pour lier à MeiliSearch
+  @Column({ nullable: true })
+  medicamentId: string; 
+  
   @Column()
   medicamentNom: string;
 
   @Column({ default: 'EN_ATTENTE' })
   statut: string; 
 
-  // Mode de paiement (ESPECES, ASSURANCE, MOBILE_MONEY)
   @Column({ default: 'ESPECES' })
   modePaiement: string;
 
-  // ✅ NOUVEAU : Le Code de Retrait Sécurisé (ex: 8943)
-  // C'est ce code que le coursier devra donner au pharmacien
   @Column({ nullable: true })
   codeRetrait: string;
 
@@ -28,6 +29,10 @@ export class Demande {
 
   @Column({ type: 'simple-json', nullable: true })
   positionPharmacie: { lat: number; lon: number };
+
+  // ✅ INDISPENSABLE pour le suivi GPS Livreur
+  @Column({ type: 'simple-json', nullable: true })
+  positionLivreur: { lat: number; lon: number };
 
   @Column({ type: 'geometry', spatialFeatureType: 'Point', srid: 4326 })
   positionClient: any; 

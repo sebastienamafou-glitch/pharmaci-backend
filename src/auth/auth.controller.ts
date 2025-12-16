@@ -5,21 +5,18 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  // 🌍 Page de connexion Web (Commune Admin/Pharma)
   @Get('web/login')
   @Render('login')
   pageLogin() {
-    return { title: 'Connexion Pro' };
+    return { title: 'Connexion Pro - PharmaCi' };
   }
 
-  // 👑 NOUVEAU : Page SuperAdmin (Ministère)
   @Get('web/admin')
-  @Render('admin') // Charge views/admin.hbs
+  @Render('admin') 
   pageAdmin() {
     return { title: 'Administration Ministère' };
   }
 
-  // 🚀 Login
   @Post('login')
   async login(@Body() body: any) {
     const user = await this.authService.validateUser(body.telephone, body.password);
@@ -30,19 +27,38 @@ export class AuthController {
 
     const tokenResult = await this.authService.login(user);
 
+    // ✅ CORRECTION : On précise le type (string | null)
+    let redirectUrl: string | null = null;
+
+    switch (user.role) {
+        case 'ADMIN':
+            redirectUrl = '/auth/web/admin';
+            break;
+        case 'PHARMACIEN':
+            redirectUrl = '/demandes/dashboard';
+            break;
+        case 'LIVREUR':
+            // Redirection vers le dashboard livreur
+            redirectUrl = `/demandes/livreur-dashboard?livreurId=${user.id}`;
+            break;
+        case 'CLIENT':
+            redirectUrl = null; 
+            break;
+        default:
+            redirectUrl = '/auth/web/login';
+    }
+
     return {
       access_token: tokenResult.access_token,
       role: user.role,
       nom: user.nomComplet,
-      id: user.id
+      id: user.id,
+      redirect_to: redirectUrl 
     };
   }
 
-  // 📝 Inscription (Client par défaut, mais permet Pharmacien si spécifié)
   @Post('inscription')
   async register(@Body() body: any) {
-    // Si 'body.role' est envoyé (par le dashboard admin), on l'utilise
-    // Sinon, par défaut c'est 'CLIENT' (voir auth.service.ts)
     return this.authService.inscription(body.nom, body.telephone, body.password, body.role);
   }
 }

@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Pharmacien - PharmaCi</title>
+    <title>Espace Pharmacien - PharmaCi Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<class="h-full overflow-hidden">
+<body class="h-full overflow-hidden">
 
     <div class="fixed inset-y-0 left-0 w-64 bg-green-800 overflow-y-auto transition-transform transform -translate-x-full md:translate-x-0 z-30">
         <div class="flex items-center justify-center h-24 shadow-md bg-green-900">
-            <img src="/images/image_5.png" alt="PharmaCi Logo" class="h-16 w-auto drop-shadow-lg">
+            <h1 class="text-white font-bold text-2xl tracking-wider">PharmaCi <span class="text-green-300">Pro</span></h1>
         </div>
         <nav class="mt-10 px-4">
             <a href="#" class="flex items-center px-4 py-3 text-white bg-green-700 rounded-lg mb-2 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                 <span class="font-medium">Demandes en cours</span>
             </a>
+            
             <a href="#" class="flex items-center px-4 py-3 text-green-100 hover:bg-green-700 rounded-lg mb-2 opacity-50 cursor-not-allowed transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
                 <span>Mon Stock (Bientôt)</span>
             </a>
-            <a href="#" class="flex items-center px-4 py-3 text-green-100 hover:bg-green-700 rounded-lg mb-2 opacity-50 cursor-not-allowed transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>Historique Ventes (Bientôt)</span>
-            </a>
+         
+            <div class="mt-8 border-t border-green-700 pt-4">
+                <a href="#" onclick="logout()" class="flex items-center px-4 py-3 text-red-200 hover:bg-red-900 hover:text-white rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Déconnexion</span>
+                </a>
+            </div>
         </nav>
     </div>
 
@@ -45,10 +51,11 @@
                         <span class="block h-2 w-2 rounded-full bg-green-500 mr-2"></span>
                         Live
                     </span>
+                  
                     <div class="ml-6 flex items-center border-l border-gray-200 pl-6">
                         <div class="text-right mr-3">
-                            <span class="block text-sm font-medium text-gray-900">Pharmacie Principale</span>
-                            <span class="block text-xs text-gray-500">Abidjan, Plateau</span>
+                            <span class="block text-sm font-medium text-gray-900" id="userNameDisplay">Pharmacie Principale</span>
+                            <span class="block text-xs text-gray-500">Connecté</span>
                         </div>
                         <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-green-600 to-green-400 flex items-center justify-center text-white font-bold shadow-sm">P</div>
                     </div>
@@ -68,6 +75,7 @@
                         <p class="text-3xl font-extrabold text-gray-900">{{demandes.length}}</p>
                     </div>
                 </div>
+            
                 <div class="bg-white rounded-xl shadow-sm p-6 flex items-center border-l-4 border-green-500 hover:shadow-md transition-shadow opacity-60">
                     <div class="p-4 rounded-full bg-green-50 mr-5">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -85,7 +93,6 @@
                          <h2 class="text-lg font-bold text-gray-800">File d'attente des demandes</h2>
                          <p class="text-xs text-gray-500 mt-1">Les demandes les plus récentes apparaissent en premier.</p>
                     </div>
-                   
                     <span class="inline-flex items-center text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         Actualisation auto (5s)
@@ -96,9 +103,9 @@
                     <table class="min-w-full">
                         <thead>
                             <tr class="bg-gray-100 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                <th class="px-6 py-4 rounded-tl-lg">N° Ticket / Heure</th>
+                                <th class="px-6 py-4 rounded-tl-lg">N° Ticket</th>
                                 <th class="px-6 py-4">Produit / Demande</th>
-                                <th class="px-6 py-4 text-center">État</th>
+                                <th class="px-6 py-4">Paiement</th> <th class="px-6 py-4 text-center">État</th>
                                 <th class="px-6 py-4 text-right rounded-tr-lg">Action Requise</th>
                             </tr>
                         </thead>
@@ -114,6 +121,7 @@
                                         </span>
                                     </div>
                                 </td>
+
                                 <td class="px-6 py-5">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-sm border border-blue-100">
@@ -123,9 +131,15 @@
                                              <div class="text-sm font-bold text-gray-900">{{this.medicamentNom}}</div>
                                              <div class="text-xs text-gray-500 mt-0.5">Recherche standard</div>
                                         </div>
-                                       
                                     </div>
                                 </td>
+
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <span class="text-xs font-bold px-2 py-1 rounded {{#if (eq this.modePaiement 'ASSURANCE')}}bg-blue-100 text-blue-800{{else}}bg-gray-100 text-gray-800{{/if}}">
+                                        {{this.modePaiement}}
+                                    </span>
+                                </td>
+
                                 <td class="px-6 py-5 whitespace-nowrap text-center">
                                     {{#if (eq this.statut 'EN_ATTENTE')}}
                                         <span class="px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">
@@ -133,23 +147,38 @@
                                             À traiter
                                         </span>
                                     {{else}}
-                                        <span class="px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-50 text-green-700 border border-green-200 shadow-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                                            Confirmé
-                                        </span>
+                                        {{#if (eq this.statut 'ACCEPTEE')}}
+                                            <span class="px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                Attente Livreur
+                                            </span>
+                                        {{else}}
+                                            <span class="px-4 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                Terminé
+                                            </span>
+                                        {{/if}}
                                     {{/if}}
                                 </td>
+
                                 <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
                                     {{#if (eq this.statut "EN_ATTENTE")}}
-                                        <button onclick="accepterDemande('{{this.id}}')" class="group inline-flex items-center px-5 py-2.5 bg-green-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                        <button onclick="accepterDemande('{{this.id}}')" class="group inline-flex items-center px-5 py-2.5 bg-green-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 transition ease-in-out duration-150 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                            Confirmer le stock
+                                            Confirmer
                                         </button>
+
                                     {{else}}
-                                        <span class="text-gray-400 font-medium inline-flex items-center bg-gray-50 px-3 py-1 rounded-full">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            Traité
-                                        </span>
+                                        {{#if (eq this.statut "ACCEPTEE")}}
+                                            <button onclick="assignerLivreur('{{this.id}}')" class="group inline-flex items-center px-5 py-2.5 bg-blue-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 transition ease-in-out duration-150 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 animate-pulse">
+                                                <span class="mr-2">🏍️</span>
+                                                Assigner Livreur
+                                            </button>
+                                        {{else}}
+                                            <span class="text-gray-400 font-medium inline-flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                                                Traité
+                                            </span>
+                                        {{/if}}
                                     {{/if}}
                                 </td>
                             </tr>
@@ -177,18 +206,39 @@
     </div>
 
     <script>
+        // --- 1. Gestion Authentification ---
+        const token = localStorage.getItem('token');
+        const userName = localStorage.getItem('userName') || 'Pharmacien';
+
+        // Redirection si pas connecté
+        if (!token) {
+            window.location.href = '/auth/web/login';
+        }
+
+        // Affichage du nom
+        const userDisplayElement = document.getElementById('userNameDisplay');
+        if (userDisplayElement) userDisplayElement.textContent = userName;
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/auth/web/login';
+        }
+
+        // --- 2. Logique Métier (Actions) ---
+
         // Fonction pour confirmer la disponibilité du produit
         async function accepterDemande(id) {
-            // Utilisation d'une modale de confirmation un peu plus "pro" que le alert() de base
             if(!confirm("Confirmez-vous avoir ce produit en stock et pouvoir le délivrer ?\n\nCette action informera le patient immédiatement.")) return;
             
             try {
-                // On change le curseur pour montrer que ça charge
                 document.body.style.cursor = 'wait';
-                
-                const reponse = await fetch(`/demandes/${id}/accepter`, { method: 'POST' });
+                // Appel API avec le Token
+                const reponse = await fetch(`/demandes/${id}/accepter`, { 
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token } 
+                });
+
                 if (reponse.ok) {
-                    // On recharge pour voir le changement d'état
                     window.location.reload();
                 } else {
                     document.body.style.cursor = 'default';
@@ -197,11 +247,43 @@
             } catch (e) {
                 document.body.style.cursor = 'default';
                 console.error(e);
-                alert("Erreur de connexion réseau. Vérifiez votre internet.");
+                alert("Erreur de connexion réseau.");
             }
         }
 
-        // Rafraîchissement automatique toutes les 5 secondes pour le temps réel
+        // ✅ NOUVELLE FONCTION : Assigner Livreur
+        async function assignerLivreur(id) {
+            // Pour la démo ou MVP, on demande confirmation avant d'assigner
+            if(!confirm("Voulez-vous assigner un livreur pour récupérer cette commande ?")) return;
+            
+            try {
+                document.body.style.cursor = 'wait';
+                
+                // Ici, 'demo-livreur-1' est codé en dur pour l'exemple, 
+                // mais cela pourrait venir d'une sélection dans une modale
+                const reponse = await fetch(`/demandes/${id}/assigner-livreur`, { 
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token 
+                    },
+                    body: JSON.stringify({ livreurId: 'demo-livreur-1' })
+                });
+
+                if (reponse.ok) {
+                    alert("Livreur notifié ! Le client peut suivre sa commande.");
+                    window.location.reload();
+                } else {
+                    document.body.style.cursor = 'default';
+                    alert("Erreur lors de l'assignation du livreur.");
+                }
+            } catch (e) { 
+                document.body.style.cursor = 'default';
+                alert("Erreur réseau lors de l'assignation."); 
+            }
+        }
+
+        // Rafraîchissement automatique toutes les 5 secondes
         setTimeout(function(){
            window.location.reload();
         }, 5000);
