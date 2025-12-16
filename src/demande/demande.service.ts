@@ -2,7 +2,6 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Demande } from './demande.entity';
-// ✅ Import du service Médicament
 import { MedicamentService } from '../medicament/medicament.service'; 
 import { Medicament } from '../medicament/medicament.entity'; 
 
@@ -11,7 +10,6 @@ export class DemandeService {
   constructor(
     @InjectRepository(Demande)
     private repoDemande: Repository<Demande>, 
-    // ✅ Injection avec forwardRef pour éviter les bugs
     @Inject(forwardRef(() => MedicamentService)) 
     private medicamentService: MedicamentService, 
   ) {}
@@ -19,18 +17,24 @@ export class DemandeService {
   async creerDemande(medicament: string, lat: number, lon: number, paiement: string = 'ESPECES') {
     // 1. Recherche ID Médicament
     const resultatsRecherche = await this.medicamentService.rechercher(medicament);
-    const medicamentTrouve: Partial<Medicament> = resultatsRecherche.hits?.[0] || {};
+    
+    // ✅ CORRECTION 1 : Utilisation de 'any' pour contourner le typage strict de MeiliSearch
+    const medicamentTrouve: any = resultatsRecherche.hits?.[0] || {};
     
     const codeSecret = Math.floor(1000 + Math.random() * 9000).toString();
 
     const nouvelleDemande = this.repoDemande.create({
-      medicamentId: medicamentTrouve.id?.toString() || '0', 
+      // Conversion en string sécurisée
+      medicamentId: medicamentTrouve.id ? medicamentTrouve.id.toString() : '0', 
       medicamentNom: medicament,
       statut: 'EN_ATTENTE',
       modePaiement: paiement,
       codeRetrait: codeSecret, 
       positionClient: { type: 'Point', coordinates: [lon, lat] },
-      positionLivreur: null, 
+      
+      // ✅ CORRECTION 2 : Mettre 'undefined' au lieu de 'null'
+      // TypeORM comprendra qu'il ne faut rien mettre (donc NULL en base de données)
+      positionLivreur: undefined, 
     });
     return await this.repoDemande.save(nouvelleDemande);
   }
@@ -39,7 +43,9 @@ export class DemandeService {
     const demandesBrutes = await this.repoDemande.find({ order: { dateCreation: 'DESC' } });
     
     // Enrichissement des données
-    const medicamentsEnBase = (await this.medicamentService.rechercher('')).hits;
+    const resultats = await this.medicamentService.rechercher('');
+    // ✅ CORRECTION 3 : Cast explicite pour éviter les soucis de typage sur le map plus bas
+    const medicamentsEnBase: any[] = resultats.hits;
     
     const demandesEnrichies = demandesBrutes.map(d => {
         const medicamentDetail = medicamentsEnBase.find(m => 
@@ -78,7 +84,8 @@ export class DemandeService {
     if (demande && demande.statut === 'ACCEPTEE') {
       demande.statut = 'LIVRAISON_EN_COURS'; 
       demande.positionLivreur = demande.positionPharmacie; // Départ
-      demande['livreurId'] = livreurId; 
+      // Notation correcte pour ajouter une propriété dynamique si elle n'existe pas sur l'entité
+      (demande as any)['livreurId'] = livreurId; 
       return await this.repoDemande.save(demande);
     }
     return null;
