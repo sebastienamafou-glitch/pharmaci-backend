@@ -6,20 +6,20 @@ import hbs = require('hbs');
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  // ForceUpdate Vercel
-
-  // ✅ CRUCIAL POUR LA PWA : On ouvre les vannes (CORS)
-  // Cela permet à votre site Web (et à l'app mobile) de discuter avec le serveur
+  
   app.enableCors({
-    origin: '*', // Pour la démo, on autorise tout le monde.
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
+  // ✅ Cette ligne est cruciale pour que /js/dashboard.js fonctionne
   app.useStaticAssets(join(__dirname, '..', 'public'));
+  
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('hbs');
 
+  // Helper HBS conservé
   hbs.registerHelper('eq', (a, b) => a === b);
 
   await app.listen(3000, '0.0.0.0');

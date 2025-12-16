@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Livreur - PharmaCi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card-urgent { border-left: 5px solid #EF4444; background-color: #FEF2F2; }
+        .card-standard { border-left: 5px solid #3B82F6; background-color: white; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div class="bg-blue-800 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <div>
+            <h1 class="font-bold text-lg leading-none">PharmaCi <span class="text-blue-300">Delivery</span></h1>
+            <span class="text-[10px] text-blue-200 opacity-80" id="gpsStatus">GPS: En attente...</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full text-xs transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <main class="p-4 space-y-4">
+        <h2 class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2 flex justify-between items-center">
+            Vos missions <span class="bg-gray-200 text-gray-600 rounded-full px-2 py-0.5 text-[10px]">{{demandes.length}}</span>
+        </h2>
+
+        <div id="demandesList" class="space-y-4">
+            {{#unless demandes}}
+            <div class="text-center py-12 flex flex-col items-center justify-center">
+                 <div class="bg-white rounded-full h-24 w-24 flex items-center justify-center mb-4 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <p class="text-gray-500 font-medium">Aucune livraison assignée.</p>
+            </div>
+            {{/unless}}
+
+            {{#each demandes}}
+            <div class="rounded-xl shadow-sm p-4 relative transition duration-150 {{#if this.isUrgent}}card-urgent{{else}}card-standard{{/if}}">
+                
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="text-xs font-bold text-gray-400 tracking-widest">CMD #{{this.id_short}}</span>
+                        <h3 class="font-bold text-gray-900 text-lg leading-tight mt-1">{{this.medicamentNom}}</h3>
+                    </div>
+                    {{#if this.isUrgent}}
+                    <span class="bg-red-100 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-1 rounded-md animate-pulse">URGENT</span>
+                    {{/if}}
+                </div>
+
+                <div class="space-y-3 mb-4">
+                    <div class="flex items-start bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                        <span class="text-xl mr-3">📍</span>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold">Destination</p>
+                            <p class="text-sm font-bold text-gray-800 leading-snug">
+                                {{#if this.pointDeRepere}}{{this.pointDeRepere}}{{else}}Position GPS Client{{/if}}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    {{#if (eq this.statut 'ACCEPTEE')}}
+                        <button onclick="demarrerLivraison('{{this.id}}')" 
+                                class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm shadow-md transition transform active:scale-95">
+                                <span>Démarrer la course 🚀</span>
+                        </button>
+                    {{else}}
+                        {{#if (eq this.statut 'LIVRAISON_EN_COURS')}}
+                        <div class="grid grid-cols-2 gap-3">
+                             <a href="https://www.google.com/maps/dir/?api=1&destination={{this.positionClient.coordinates.[1]}},{{this.positionClient.coordinates.[0]}}" 
+                               target="_blank"
+                               class="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl text-sm transition border border-gray-300">
+                               GPS
+                            </a>
+                            <button onclick="terminerLivraison('{{this.id}}')" class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm shadow-md">
+                                LIVRÉ
+                            </button>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 animate-pulse">
+                                📡 Tracking GPS Actif
+                            </span>
+                        </div>
+                        {{/if}}
+                    {{/if}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/auth/web/login';
+
+        // Variable pour stocker l'ID de suivi GPS (pour pouvoir l'arrêter)
+        let watchId = null;
+        let activeDeliveryId = null;
+
+        // Au chargement, on vérifie si une livraison est déjà en cours pour relancer le tracking
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedDeliveryId = localStorage.getItem('activeDeliveryId');
+            if (storedDeliveryId) {
+                console.log("Reprise du tracking pour : " + storedDeliveryId);
+                activerSuiviGPS(storedDeliveryId);
+            }
+        });
+
+        function logout() {
+            stopTracking();
+            localStorage.clear();
+            window.location.href = '/auth/web/login';
+        }
+
+        async function demarrerLivraison(id) {
+            if(!confirm("Démarrer la course et activer le GPS ?")) return;
+            
+            try {
+                // 1. Appel API pour changer le statut
+                const response = await fetch(`/demandes/${id}/assigner-livreur`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ livreurId: 'moi' }) 
+                });
+
+                if(response.ok) {
+                    // 2. Activer le GPS Réel
+                    activerSuiviGPS(id);
+                    window.location.reload();
+                }
+            } catch (e) { alert("Erreur connexion"); }
+        }
+
+        async function terminerLivraison(id) {
+            if(!confirm("Avez-vous remis le colis ?")) return;
+            stopTracking();
+            
+            try {
+                // Mettre à jour statut final
+                await fetch(`/demandes/${id}/update-position`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: 0, lon: 0, statut: 'LIVRE' }) 
+                });
+                alert("Livraison terminée !");
+                window.location.reload();
+            } catch(e) { alert("Erreur réseau"); }
+        }
+
+        // --- CŒUR DU SYSTÈME GPS ---
+        function activerSuiviGPS(idDemande) {
+            if (!navigator.geolocation) {
+                alert("Votre téléphone ne supporte pas la géolocalisation.");
+                return;
+            }
+
+            activeDeliveryId = idDemande;
+            localStorage.setItem('activeDeliveryId', idDemande);
+            document.getElementById('gpsStatus').textContent = "GPS: 🟢 Actif";
+
+            // watchPosition : Appelle la fonction success à chaque mouvement du téléphone
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Envoi au serveur (Fire and Forget)
+                    fetch(`/demandes/${idDemande}/update-position`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lat: lat, lon: lon })
+                    }).catch(err => console.error("Erreur envoi GPS", err));
+
+                    console.log(`📍 Position envoyée : ${lat}, ${lon}`);
+                },
+                (error) => {
+                    console.error("Erreur GPS", error);
+                    document.getElementById('gpsStatus').textContent = "GPS: 🔴 Erreur";
+                },
+                {
+                    enableHighAccuracy: true, // Mode GPS précis (gourmand en batterie)
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            localStorage.removeItem('activeDeliveryId');
+            document.getElementById('gpsStatus').textContent = "GPS: En attente...";
+        }
+
+        // Rafraîchissement page (pour voir nouvelles commandes)
+        // On ne recharge pas si on est en train de livrer, sinon ça peut couper le tracking sur certains vieux navigateurs
+        setInterval(() => {
+            if (!activeDeliveryId) {
+                window.location.reload();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
