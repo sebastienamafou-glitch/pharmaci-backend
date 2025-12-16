@@ -11,8 +11,18 @@ export class UsersController {
     private usersRepo: Repository<User>,
   ) {}
 
+  // ✅ NOUVELLE ROUTE : Récupérer la liste des pharmaciens pour l'admin
+  @UseGuards(AuthGuard('jwt'))
+  @Get('pharmaciens')
+  async listerPharmaciens() {
+    return this.usersRepo.find({
+      where: { role: 'PHARMACIEN' },
+      order: { dateInscription: 'DESC' }, // Les plus récents en premier
+      take: 10 // Limité aux 10 derniers
+    });
+  }
+
   // Route pour s'abonner (Protégée par JWT)
-  // POST est correct ici car on crée une souscription (modification d'état)
   @UseGuards(AuthGuard('jwt'))
   @Post('subscribe')
   async sAbonner(@Request() req: any, @Body('dureeMois') dureeMois: number = 1) {
@@ -45,7 +55,6 @@ export class UsersController {
   }
   
   // Route pour vérifier son profil
-  // ✅ CORRECTION : Utilisation de GET pour la lecture de données
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   async getProfile(@Request() req: any) {

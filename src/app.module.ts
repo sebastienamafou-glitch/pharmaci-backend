@@ -20,6 +20,8 @@ import { DemandeService } from './demande/demande.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { JwtStrategy } from './auth/jwt.strategy';
+import { PubliciteModule } from './publicite/publicite.module'; // ✅ IMPORT
+import { Publicite } from './publicite/publicite.entity'; // ✅ IMPORT ENTITY
 
 @Module({
   imports: [
@@ -39,7 +41,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
     }),
     
-    TypeOrmModule.forFeature([Pharmacie, Demande, User]),
+    TypeOrmModule.forFeature([Pharmacie, Demande, User, Publicite]),
     
     MeiliSearchModule.forRoot({
       host: process.env.MEILI_HOST || 'http://localhost:7700',
@@ -55,6 +57,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
 
     // ✅ 2. CORRECTION : UsersModule est ici (dans imports)
     UsersModule, 
+    PubliciteModule, // ✅ IMPORT
   ],
   controllers: [
     PharmacieController, 
