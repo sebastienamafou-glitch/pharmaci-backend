@@ -147,26 +147,26 @@
     </header>
 
     <section class="hero">
-        <span class="badge-ci">🇨🇮 Innovation Ivoirienne</span>
+        <span class="badge-ci">🇨🇮 Innovation Ivoirienne🇨🇮</span>
         <h1>La Santé Numérique <br>à portée de main</h1>
         <p>Bienvenue sur la plateforme centralisée PharmaCi. <br>Veuillez sélectionner votre espace de connexion.</p>
     </section>
 
     <main class="portal-container">
         
-        <a href="/admin/login" class="card admin"> <div class="card-icon"><i class="fas fa-user-shield"></i></div>
+        <a href="/admin" class="card admin"> <div class="card-icon"><i class="fas fa-user-shield"></i></div>
             <h3>Administration</h3>
             <p>Gestion globale de la plateforme, utilisateurs et sécurité.</p>
             <span class="btn-access">Connexion Admin</span>
         </a>
 
-        <a href="/pharmacie/login" class="card pharma"> <div class="card-icon"><i class="fas fa-clinic-medical"></i></div>
+        <a href="/dashboard" class="card pharma"> <div class="card-icon"><i class="fas fa-clinic-medical"></i></div>
             <h3>Espace Pharmacien</h3>
             <p>Gestion des stocks, commandes entrantes et tours de garde.</p>
             <span class="btn-access">Accès Officine</span>
         </a>
 
-        <a href="/hub/login" class="card hub"> <div class="card-icon"><i class="fas fa-truck-fast"></i></div>
+        <a href="/livreur-dashboard" class="card hub"> <div class="card-icon"><i class="fas fa-truck-fast"></i></div>
             <h3>Hub & Logistique</h3>
             <p>Dispatching des commandes, suivi livreurs et zones GPS.</p>
             <span class="btn-access">Accès Logistique</span>
@@ -181,15 +181,28 @@
         </button>
     </div>
 
-    <footer>
-        <p>&copy; 2024 PharmaCi Technologies.</p>
-        <p style="margin-top: 5px; opacity: 0.7;">Fait avec ❤️ à Abidjan, Côte d'Ivoire.</p>
-        <div style="margin-top: 10px;">
-            <span class="ci-flag" style="background: #FF8200;"></span>
-            <span class="ci-flag" style="background: #FFFFFF;"></span>
-            <span class="ci-flag" style="background: #009E60;"></span>
-        </div>
-    </footer>
+    <footer style="background: #f8f9fa; padding: 50px 5%; text-align: center; border-top: 1px solid #e0e0e0;">
+    <div style="margin-bottom: 30px;">
+        <p style="font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">
+            Solution propulsée par
+        </p>
+        <img src="/logo_webappci.png" alt="WebappCi" style="height: 45px; opacity: 0.9;">
+    </div>
+
+    <p style="font-weight: 600; color: #2c3e50;">&copy; 2025 PharmaCi. Tous droits réservés.</p>
+    
+    <div style="margin-top: 20px;">
+        <a href="/politique" style="color: #009E60; text-decoration: none; font-size: 0.9rem; font-weight: 500; border: 1.5px solid #009E60; padding: 8px 20px; border-radius: 25px; transition: 0.3s;">
+            <i class="fas fa-user-shield"></i> Politique de Confidentialité
+        </a>
+    </div>
+
+    <div style="margin-top: 30px; display: flex; justify-content: center; gap: 4px;">
+        <div style="width: 15px; height: 10px; background: #FF8200;"></div>
+        <div style="width: 15px; height: 10px; background: #FFFFFF; border: 1px solid #eee;"></div>
+        <div style="width: 15px; height: 10px; background: #009E60;"></div>
+    </div>
+</footer>
 
 </body>
 </html>
