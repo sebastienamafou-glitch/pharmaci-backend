@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ServeStaticModule } from '@nestjs/serve-static';
+import { ServeStaticModule } from '@nestjs/serve-static'; 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MeiliSearchModule } from 'nestjs-meilisearch';
-import { join } from 'path'; // ✅ CORRECTION : 'path' tout court (pas win32)
+import { ConfigModule } from '@nestjs/config'; // ✅ IMPORT CORRECT
 
 // --- MODULES FONCTIONNELS ---
 import { UsersModule } from './users/users.module';
@@ -14,21 +14,34 @@ import { MedicamentModule } from './medicament/medicament.module';
 import { DemandeModule } from './demande/demande.module';
 import { PharmacieModule } from './pharmacie/pharmacie.module';
 
+// --- ENTITÉS ---
+import { Pharmacie } from './pharmacie/pharmacie.entity';
+import { Demande } from './demande/demande.entity';
+import { User } from './users/user.entity';
+import { Publicite } from './publicite/publicite.entity';
+import { Hub } from './hubs/hubs.entity';               
+import { Medicament } from './medicament/medicament.entity'; 
+
 // --- CONTROLLERS & SERVICES ---
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { JwtStrategy } from './auth/jwt.strategy';
+import { join } from 'path'; // ✅ CORRECTION : 'path' au lieu de 'path/win32' pour Linux/Render
 
 @Module({
   imports: [
-    // 1. Fichiers Statiques (Vue Web)
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+    // ✅ 0. ConfigModule pour charger les variables d'environnement (Doit être en premier)
+    ConfigModule.forRoot({
+      isGlobal: true, // Disponible partout sans réimporter
     }),
-    
-    // 2. Base de Données PostgreSQL
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'), 
+    }),
+
+    // 1. Base de Données PostgreSQL
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL, 
@@ -37,29 +50,25 @@ import { JwtStrategy } from './auth/jwt.strategy';
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'root',
       database: process.env.DB_NAME || 'pharmaci',
-      
-      // ✅ CORRECTION MAJEURE : Chargement automatique des entités
-      // Cela permet de trouver 'Publicite' même après la compilation
-      autoLoadEntities: true, 
-      synchronize: true, // À garder à true pour le prototype
-      
+      entities: [Pharmacie, Demande, User, Publicite, Hub, Medicament],
+      synchronize: true, 
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
     }),
     
-    // 3. Moteur de Recherche (MeiliSearch)
+    // 2. Moteur de Recherche (MeiliSearch)
     MeiliSearchModule.forRoot({
       host: process.env.MEILI_HOST || 'http://localhost:7700',
       apiKey: process.env.MEILI_KEY || 'masterKey',
     }),
     
-    // 4. Authentification
+    // 3. Authentification
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', 
       signOptions: { expiresIn: '1d' }, 
     }),
 
-    // 5. Modules Métiers
+    // 4. Import des Modules
     UsersModule, 
     PubliciteModule,
     HubsModule,      
@@ -67,7 +76,14 @@ import { JwtStrategy } from './auth/jwt.strategy';
     DemandeModule,
     PharmacieModule,
   ],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AuthService, JwtStrategy],
+  controllers: [
+    AppController,
+    AuthController
+  ],
+  providers: [
+    AppService,
+    AuthService,
+    JwtStrategy
+  ],
 })
 export class AppModule {}
