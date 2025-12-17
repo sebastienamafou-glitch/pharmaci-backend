@@ -1,63 +1,58 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../users/user.entity';
 
 @Entity()
 export class Demande {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // ✅ CORRECTION : Ajout de "| null" pour autoriser la valeur null
-  @Column({ nullable: true })
-  hubId: string | null;
+  // Numéro court pour l'affichage (ex: #1234)
+  @Column({ type: 'int', generated: 'increment' })
+  id_short: number;
 
-  @Column({ nullable: true })
-  hubNom: string | null;
-
-  @Column({ nullable: true })
-  medicamentId: string | null; 
-  
   @Column()
-  medicamentNom: string;
+  medicament: string; // Nom du médicament
 
-  @Column({ default: 'EN_ATTENTE' })
-  statut: string; 
+  // --- LOCALISATION ---
+  @Column({ type: 'float' })
+  lat: number;
 
+  @Column({ type: 'float' })
+  lon: number;
+
+  @Column({ nullable: true })
+  pointDeRepere: string; // Ex: "Portail vert"
+
+  // --- DETAILS COMMANDE ---
   @Column({ default: 'ESPECES' })
-  modePaiement: string;
+  modePaiement: string; // ESPECES, WAVE, OM...
 
   @Column({ default: 'STANDARD' })
-  priorite: 'STANDARD' | 'URGENT';
+  priorite: string; // STANDARD, URGENT
+
+  @Column({ default: 'EN_ATTENTE' })
+  statut: string; // EN_ATTENTE, ACCEPTEE, EN_COURS, TERMINEE
+
+  // --- RELATIONS ---
+  
+  // Le Client qui a commandé (Optionnel si commande anonyme, mais recommandé)
+  @ManyToOne(() => User, { nullable: true })
+  client: User;
 
   @Column({ nullable: true })
-  pointDeRepere: string | null;
+  clientId: string;
 
-  // --- 💰 SECTION FINANCIÈRE ---
-  @Column({ type: 'float', nullable: true })
-  prixMedicament: number | null; 
-
-  @Column({ type: 'float', default: 1500 })
-  fraisLivraison: number; 
-
-  @Column({ type: 'float', nullable: true })
-  totalAPayer: number | null; 
-  // -----------------------------
+  // Le Livreur assigné
+  @ManyToOne(() => User, { nullable: true })
+  livreur: User;
 
   @Column({ nullable: true })
-  codeRetrait: string | null;
+  livreurId: string;
 
-  @Column({ nullable: true })
-  pharmacieId: string | null;
-
-  @Column({ nullable: true })
-  pharmacieNom: string | null;
-
-  @Column({ type: 'simple-json', nullable: true })
-  positionPharmacie: { lat: number; lon: number } | null;
-
-  @Column({ type: 'simple-json', nullable: true })
-  positionLivreur: { lat: number; lon: number } | null;
-
-  @Column({ type: 'geometry', spatialFeatureType: 'Point', srid: 4326 })
-  positionClient: any; 
+  // ✅ CORRECTION DE L'ERREUR ICI
+  // On définit explicitement que hubId est un nombre (ou null)
+  @Column({ type: 'int', nullable: true })
+  hubId: number; 
 
   @CreateDateColumn()
   dateCreation: Date;
