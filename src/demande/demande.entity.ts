@@ -5,8 +5,15 @@ export class Demande {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // ✅ CORRECTION : Ajout de "| null" pour autoriser la valeur null
   @Column({ nullable: true })
-  medicamentId: string; 
+  hubId: string | null;
+
+  @Column({ nullable: true })
+  hubNom: string | null;
+
+  @Column({ nullable: true })
+  medicamentId: string | null; 
   
   @Column()
   medicamentNom: string;
@@ -21,33 +28,33 @@ export class Demande {
   priorite: 'STANDARD' | 'URGENT';
 
   @Column({ nullable: true })
-  pointDeRepere: string;
+  pointDeRepere: string | null;
 
-  // --- 💰 SECTION FINANCIÈRE (Nouveau) ---
+  // --- 💰 SECTION FINANCIÈRE ---
   @Column({ type: 'float', nullable: true })
-  prixMedicament: number; // Saisi par le pharmacien
+  prixMedicament: number | null; 
 
   @Column({ type: 'float', default: 1500 })
-  fraisLivraison: number; // Calculé par le système
+  fraisLivraison: number; 
 
   @Column({ type: 'float', nullable: true })
-  totalAPayer: number; // Somme des deux
-  // ----------------------------------------
+  totalAPayer: number | null; 
+  // -----------------------------
 
   @Column({ nullable: true })
-  codeRetrait: string;
+  codeRetrait: string | null;
 
   @Column({ nullable: true })
-  pharmacieId: string;
+  pharmacieId: string | null;
 
   @Column({ nullable: true })
-  pharmacieNom: string;
+  pharmacieNom: string | null;
 
   @Column({ type: 'simple-json', nullable: true })
-  positionPharmacie: { lat: number; lon: number };
+  positionPharmacie: { lat: number; lon: number } | null;
 
   @Column({ type: 'simple-json', nullable: true })
-  positionLivreur: { lat: number; lon: number };
+  positionLivreur: { lat: number; lon: number } | null;
 
   @Column({ type: 'geometry', spatialFeatureType: 'Point', srid: 4326 })
   positionClient: any; 

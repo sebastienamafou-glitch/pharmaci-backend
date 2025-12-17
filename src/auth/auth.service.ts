@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,11 +13,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ 1. Validation via Téléphone (Utilisé par le Controller)
+  // 1. Validation User
   async validateUser(telephone: string, pass: string): Promise<any> {
     const user = await this.userRepo.findOne({ where: { telephone } });
-    
-    // Si l'utilisateur existe et que le mot de passe correspond
     if (user && await bcrypt.compare(pass, user.motDePasse)) {
       const { motDePasse, ...result } = user;
       return result;
@@ -25,29 +23,32 @@ export class AuthService {
     return null;
   }
 
-  // ✅ 2. Génération du Token (Payload avec Téléphone)
+  // 2. Login
   async login(user: any) {
-    const payload = { telephone: user.telephone, sub: user.id, role: user.role };
+    const payload = { 
+      telephone: user.telephone, 
+      sub: user.id, 
+      role: user.role,
+      isPremium: user.isPremium 
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  // ✅ 3. Inscription via Téléphone
+  // 3. Inscription
   async inscription(nom: string, telephone: string, pass: string, role: string = 'CLIENT') {
-    // Vérification si le numéro existe déjà
     const exist = await this.userRepo.findOne({ where: { telephone } });
     if (exist) {
       throw new ConflictException('Ce numéro de téléphone est déjà utilisé.');
     }
 
-    // Hachage du mot de passe
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(pass, salt);
 
     const newUser = this.userRepo.create({
       nomComplet: nom,
-      telephone: telephone, // Stockage du numéro
+      telephone: telephone,
       motDePasse: hash,
       role: role
     });
@@ -58,5 +59,31 @@ export class AuthService {
     } catch (error) {
       throw new ConflictException('Erreur lors de l\'inscription.');
     }
+  }
+
+  // ✅ 4. Activation Abonnement (CORRIGÉ)
+  async souscrireAbonnement(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    
+    if (!user) {
+      throw new NotFoundException("Utilisateur non trouvé");
+    }
+
+    // Calcul : Date d'aujourd'hui + 30 jours
+    const dateFin = new Date();
+    dateFin.setDate(dateFin.getDate() + 30);
+
+    // Mise à jour des champs selon votre user.entity.ts
+    user.isPremium = true;
+    user.abonnementType = 'PREMIUM'; // ✅ Ajouté pour cohérence
+    user.finAbonnement = dateFin;    // ✅ Correction : 'dateFinAbonnement' -> 'finAbonnement'
+
+    await this.userRepo.save(user);
+
+    return { 
+      status: 200, 
+      message: "Abonnement Santé+ activé avec succès !", 
+      dateFin: dateFin 
+    };
   }
 }

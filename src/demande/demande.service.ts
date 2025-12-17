@@ -3,25 +3,35 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Demande } from './demande.entity';
 import { MedicamentService } from '../medicament/medicament.service'; 
+import { HubsService } from '../hubs/hubs.service';
 
 @Injectable()
 export class DemandeService {
   constructor(
     @InjectRepository(Demande)
     private repoDemande: Repository<Demande>, 
+    
     @Inject(forwardRef(() => MedicamentService)) 
-    private medicamentService: MedicamentService, 
+    private medicamentService: MedicamentService,
+    
+    private hubsService: HubsService,
   ) {}
 
-  // 1. Création d'une demande par le client mobile
+  // =================================================================
+  // 1. CRÉATION D'UNE DEMANDE (CLIENT MOBILE)
+  // =================================================================
   async creerDemande(medicament: string, lat: number, lon: number, paiement: string = 'ESPECES', pointDeRepere: string = '', priorite: 'STANDARD' | 'URGENT' = 'STANDARD') {
-    // Recherche du médicament pour avoir son ID (si dispo)
+    // A. Recherche du médicament (pour récupérer l'ID si possible)
     const resultatsRecherche = await this.medicamentService.rechercher(medicament);
     const medicamentTrouve: any = resultatsRecherche.hits?.[0] || {};
     
-    // Génération d'un code de retrait simple
+    // B. Génération du code de retrait
     const codeSecret = Math.floor(1000 + Math.random() * 9000).toString();
 
+    // C. INTELLIGENCE LOGISTIQUE : Trouver le Hub le plus proche
+    const hubProche = await this.hubsService.trouverHubProche(lat, lon);
+
+    // D. Création de l'objet Demande
     const nouvelleDemande = this.repoDemande.create({
       medicamentId: medicamentTrouve.id ? medicamentTrouve.id.toString() : '0', 
       medicamentNom: medicament,
@@ -30,13 +40,23 @@ export class DemandeService {
       pointDeRepere: pointDeRepere,
       priorite: priorite,
       codeRetrait: codeSecret, 
+      
+      // ✅ ASSIGNATION DU HUB AUTOMATIQUE
+      hubId: hubProche ? hubProche.id : null,
+      hubNom: hubProche ? hubProche.nom : 'Zone Hors Couverture',
+
       positionClient: { type: 'Point', coordinates: [lon, lat] },
-      positionLivreur: undefined, // Pas encore de livreur
+      
+      // ✅ CORRECTION ICI : Utiliser null au lieu de undefined
+      positionLivreur: null, 
     });
+
     return await this.repoDemande.save(nouvelleDemande);
   }
 
-  // ✅ NOUVELLE MÉTHODE PRIVÉE : Calcul de posologie
+  // =================================================================
+  // 2. MÉTHODE PRIVÉE : CALCUL POSOLOGIE
+  // =================================================================
   private _calculerPosologie(med: any): string {
     if (!med || !med.forme) return "Se conformer à l'ordonnance";
 
@@ -54,13 +74,16 @@ export class DemandeService {
     return "1 prise par jour ou selon avis médical";
   }
 
-  // 2. Liste toutes les demandes (Enrichie avec la posologie)
+  // =================================================================
+  // 3. LISTER TOUTES LES DEMANDES (DASHBOARD)
+  // =================================================================
   async listerToutes() {
+    // On récupère les demandes triées par urgence puis par date
     const demandesBrutes = await this.repoDemande.find({ 
         order: { priorite: 'DESC', dateCreation: 'DESC' } 
     });
     
-    // On récupère TOUS les médicaments pour faire la jointure manuelle (Optimisation possible plus tard)
+    // On récupère les infos médicaments pour enrichir l'affichage
     const resultats = await this.medicamentService.rechercher('');
     const medicamentsEnBase: any[] = resultats.hits;
     
@@ -69,7 +92,7 @@ export class DemandeService {
             m.id?.toString() === d.medicamentId || m.nomCommercial === d.medicamentNom
         );
 
-        // ✅ APPEL DE LA POSOLOGIE ICI
+        // Appel de la posologie
         const posologieCalculee = this._calculerPosologie(medicamentDetail);
 
         return {
@@ -78,7 +101,6 @@ export class DemandeService {
             client: { nomComplet: 'Client Mobile' }, 
             id_short: d.id.substring(0, 8),
             isUrgent: d.priorite === 'URGENT',
-            // ✅ NOUVEAU CHAMP
             posologie: posologieCalculee 
         };
     });
@@ -86,12 +108,16 @@ export class DemandeService {
     return demandesEnrichies.sort((a, b) => (a.priorite === 'URGENT' ? -1 : 1));
   }
 
-  // 3. Trouver une demande spécifique
+  // =================================================================
+  // 4. TROUVER UNE DEMANDE PAR ID
+  // =================================================================
   async trouverParId(id: string): Promise<Demande | null> {
     return await this.repoDemande.findOne({ where: { id: id } });
   }
 
-  // 4. Pharmacien accepte la demande et fixe le prix
+  // =================================================================
+  // 5. PHARMACIEN ACCEPTE LA DEMANDE
+  // =================================================================
   async accepterDemande(idDemande: string, prixMedicament: number) {
     const demande = await this.repoDemande.findOne({ where: { id: idDemande } });
     
@@ -99,7 +125,7 @@ export class DemandeService {
       demande.statut = 'ACCEPTEE'; 
       demande.pharmacieId = "pharmacie-demo-1";
       demande.pharmacieNom = "Pharmacie du Plateau";
-      demande.positionPharmacie = { lat: 5.3260, lon: -4.0200 }; // Coordonnées fixes pour démo
+      demande.positionPharmacie = { lat: 5.3260, lon: -4.0200 }; // Demo
       
       demande.prixMedicament = Number(prixMedicament); 
       
@@ -110,7 +136,7 @@ export class DemandeService {
           demande.fraisLivraison = 1500; 
       }
       
-      // Livraison offerte si > 25000 et standard
+      // Livraison offerte si > 25.000F et standard
       if (demande.prixMedicament > 25000 && demande.priorite === 'STANDARD') {
           demande.fraisLivraison = 0;
       }
@@ -122,12 +148,14 @@ export class DemandeService {
     return null;
   }
 
-  // 5. Assigner un livreur
+  // =================================================================
+  // 6. ASSIGNER UN LIVREUR
+  // =================================================================
   async assignerLivreurADemande(idDemande: string, livreurId: string) {
     const demande = await this.repoDemande.findOne({ where: { id: idDemande } });
     if (demande && demande.statut === 'ACCEPTEE') {
       demande.statut = 'LIVRAISON_EN_COURS'; 
-      // Au début, le livreur est à la pharmacie
+      // Le livreur part de la pharmacie
       demande.positionLivreur = demande.positionPharmacie; 
       (demande as any)['livreurId'] = livreurId; 
       return await this.repoDemande.save(demande);
@@ -135,7 +163,9 @@ export class DemandeService {
     return null;
   }
 
-  // 6. Mise à jour position livreur (GPS)
+  // =================================================================
+  // 7. MISE A JOUR POSITION LIVREUR (GPS)
+  // =================================================================
   async updateLivreurPosition(idDemande: string, lat: number, lon: number) {
     const demande = await this.repoDemande.findOne({ where: { id: idDemande } });
     if (demande && demande.statut === 'LIVRAISON_EN_COURS') {

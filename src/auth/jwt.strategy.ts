@@ -8,16 +8,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', // Doit matcher auth.module.ts
+      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', 
     });
   }
 
   async validate(payload: any) {
-    // Si le token est valide (signature OK), cette fonction est appelée.
     if (!payload) {
       throw new UnauthorizedException();
     }
-    // On renvoie l'objet qui sera injecté dans 'req.user'
-    return { userId: payload.sub, telephone: payload.telephone, role: payload.role };
+    // ✅ CORRECTION : On renvoie aussi isPremium pour qu'il soit accessible via req.user
+    return { 
+      userId: payload.sub, 
+      telephone: payload.telephone, 
+      role: payload.role,
+      isPremium: payload.isPremium 
+    };
   }
 }

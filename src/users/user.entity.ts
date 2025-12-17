@@ -17,12 +17,14 @@ export class User {
   @Column()
   nomComplet: string;
 
-  // ✅ NOUVEAU : Gestion Abonnement
   @Column({ default: 'STANDARD' }) // 'STANDARD' ou 'PREMIUM'
   abonnementType: string;
 
   @Column({ type: 'timestamp', nullable: true })
   finAbonnement: Date;
+
+  @Column({ default: false })
+  isPremium: boolean;
 
   @CreateDateColumn()
   dateInscription: Date;
