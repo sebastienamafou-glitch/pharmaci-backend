@@ -1,27 +1,30 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
+    // 🔒 SÉCURITÉ CRITIQUE : Vérification stricte de la variable d'environnement
+    const secretKey = process.env.JWT_SECRET;
+
+    if (!secretKey) {
+      throw new Error('❌ FATAL ERROR: La variable JWT_SECRET est manquante. L\'application ne peut pas démarrer de manière sécurisée.');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'SECRET_PHARMACI_KEY', 
+      secretOrKey: secretKey, // ✅ Plus de fallback 'en dur' ici
     });
   }
 
   async validate(payload: any) {
-    if (!payload) {
-      throw new UnauthorizedException();
-    }
-    // ✅ CORRECTION : On renvoie aussi isPremium pour qu'il soit accessible via req.user
+    // Cette méthode est appelée si le token est valide
     return { 
       userId: payload.sub, 
-      telephone: payload.telephone, 
-      role: payload.role,
-      isPremium: payload.isPremium 
+      username: payload.username, 
+      role: payload.role // On s'assure de bien récupérer le rôle pour les Guards
     };
   }
 }

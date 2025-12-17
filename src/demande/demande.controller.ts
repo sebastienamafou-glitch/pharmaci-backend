@@ -1,53 +1,72 @@
 import { Controller, Post, Body, Get, Render, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { DemandeService } from './demande.service';
-import { AuthGuard } from '@nestjs/passport'; // Assurez-vous d'avoir ce Guard
+import { AuthGuard } from '@nestjs/passport'; 
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+
+// ✅ IMPORTS DTO
+import { CreateDemandeDto, AccepterDemandeDto, AssignerLivreurDto, UpdatePositionDto } from './dto/create-demande.dto';
 
 @Controller('demandes')
 export class DemandeController {
   constructor(private readonly service: DemandeService) {}
 
-  // 1. API pour l'app mobile : Créer une demande
+  // ==========================================================
+  // 📱 CLIENT : CRÉER UNE DEMANDE (Validée par DTO)
+  // ==========================================================
   @UseGuards(AuthGuard('jwt')) 
   @Post()
-  async nouvelleDemande(@Body() body: any, @Request() req: any) {
+  async nouvelleDemande(@Body() dto: CreateDemandeDto, @Request() req: any) { // ✅ Utilisation du DTO
     return this.service.creerDemande(
-        body.medicament, body.lat, body.lon, body.modePaiement,
-        body.pointDeRepere, body.priorite
+        dto.medicament, 
+        dto.lat, 
+        dto.lon, 
+        dto.modePaiement,
+        dto.pointDeRepere, 
+        dto.priorite
     );
   }
   
-  // 2. API pour lister (JSON)
+  // ==========================================================
+  // 💊 PHARMACIEN : VOIR TOUTES LES DEMANDES
+  // ==========================================================
   @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('PHARMACIEN', 'ADMIN')
   async voirTout() {
     return this.service.listerToutes();
   }
 
-  // 3. VUE Dashboard Pharmacien (HTML)
+  // ==========================================================
+  // 💊 PHARMACIEN : DASHBOARD WEB
+  // ==========================================================
   @Get('dashboard')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('PHARMACIEN', 'ADMIN')
   @Render('index') 
   async afficherDashboard() {
-    // Récupération des données enrichies depuis le service
     const demandes = await this.service.listerToutes(); 
     
-    // Formatage final pour la vue Handlebars
     const demandesFormatees = demandes.map(d => ({
         ...d,
         dateCreation: d.dateCreation?.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) || 'N/A',
         isAssurance: d.modePaiement === 'ASSURANCE',
         isUrgent: d.priorite === 'URGENT',
-        // On passe explicitement la posologie calculée
         posologie: d.posologie 
     }));
     return { demandes: demandesFormatees };
   }
 
-  // 4. VUE Dashboard Livreur (HTML)
+  // ==========================================================
+  // 🛵 LIVREUR : DASHBOARD WEB
+  // ==========================================================
   @Get('livreur-dashboard')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('LIVREUR', 'ADMIN')
   @Render('livreur') 
   async afficherLivreurDashboard(@Query('livreurId') livreurId: string) {
     const toutesLesDemandes = await this.service.listerToutes();
     
-    // Filtre uniquement les commandes prêtes ou en cours
     const demandesLivreur = toutesLesDemandes.filter(d => 
         d.statut === 'ACCEPTEE' || d.statut === 'LIVRAISON_EN_COURS'
     ).map(d => ({
@@ -59,30 +78,42 @@ export class DemandeController {
     return { demandes: demandesLivreur };
   }
 
-  // 5. API détails d'une demande
+  // ==========================================================
+  // ℹ️ DÉTAILS D'UNE DEMANDE
+  // ==========================================================
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
   async verifierStatut(@Param('id') id: string) {
     return this.service.trouverParId(id);
   }
 
-  // 6. Action : Pharmacien accepte
+  // ==========================================================
+  // 🚨 PHARMACIEN : ACCEPTER LA DEMANDE (Validé par DTO)
+  // ==========================================================
   @Post(':id/accepter')
-  @UseGuards(AuthGuard('jwt')) 
-  async accepter(@Param('id') id: string, @Body('prix') prix: number) {
-    const prixReelle = parseFloat((prix || 0).toString());
-    return this.service.accepterDemande(id, prixReelle);
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('PHARMACIEN')
+  async accepter(@Param('id') id: string, @Body() dto: AccepterDemandeDto) { // ✅ Validation du prix
+    return this.service.accepterDemande(id, dto.prix);
   }
   
-  // 7. Action : Assigner livreur
+  // ==========================================================
+  // 🚨 PHARMACIEN : ASSIGNER UN LIVREUR (Validé par DTO)
+  // ==========================================================
   @Post(':id/assigner-livreur')
-  @UseGuards(AuthGuard('jwt'))
-  async assignerLivreur(@Param('id') id: string, @Body('livreurId') livreurId: string) {
-    return this.service.assignerLivreurADemande(id, livreurId);
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('PHARMACIEN')
+  async assignerLivreur(@Param('id') id: string, @Body() dto: AssignerLivreurDto) { // ✅ Validation ID Livreur
+    return this.service.assignerLivreurADemande(id, dto.livreurId);
   }
 
-  // 8. Action : Mise à jour GPS livreur
+  // ==========================================================
+  // 📍 LIVREUR : MISE À JOUR GPS (Validé par DTO)
+  // ==========================================================
   @Post(':id/update-position')
-  async updatePositionLivreur(@Param('id') id: string, @Body('lat') lat: number, @Body('lon') lon: number) {
-    return this.service.updateLivreurPosition(id, lat, lon);
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('LIVREUR')
+  async updatePositionLivreur(@Param('id') id: string, @Body() dto: UpdatePositionDto) { // ✅ Validation Coordonnées
+    return this.service.updateLivreurPosition(id, dto.lat, dto.lon);
   }
 }
