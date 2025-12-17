@@ -10,49 +10,87 @@ export class Demande {
   @Column({ type: 'int', generated: 'increment' })
   id_short: number;
 
-  @Column()
-  medicament: string; // Nom du médicament
+  // --- INFO MÉDICAMENT ---
+  @Column({ nullable: true })
+  medicamentId: string; // ✅ Ajouté pour le Service
 
-  // --- LOCALISATION ---
-  @Column({ type: 'float' })
+  @Column()
+  medicamentNom: string; // ✅ Renommé/Ajouté pour correspondre au Service
+
+  @Column({ nullable: true })
+  codeRetrait: string; // ✅ Ajouté (utilisé pour la sécurité)
+
+  // --- LOCALISATION (Compatible Postgres) ---
+  
+  // Stockage GeoJSON pour le client ({ type: 'Point', coordinates: [...] })
+  @Column({ type: 'jsonb', nullable: true }) 
+  positionClient: any; 
+
+  // On garde lat/lon simples au cas où, mais nullable
+  @Column({ type: 'float', nullable: true })
   lat: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   lon: number;
 
   @Column({ nullable: true })
-  pointDeRepere: string; // Ex: "Portail vert"
+  pointDeRepere: string;
 
   // --- DETAILS COMMANDE ---
   @Column({ default: 'ESPECES' })
-  modePaiement: string; // ESPECES, WAVE, OM...
+  modePaiement: string; 
 
   @Column({ default: 'STANDARD' })
-  priorite: string; // STANDARD, URGENT
+  priorite: string; 
 
   @Column({ default: 'EN_ATTENTE' })
-  statut: string; // EN_ATTENTE, ACCEPTEE, EN_COURS, TERMINEE
+  statut: string; 
+
+  // --- PARTIE FINANCIÈRE (Manquait dans votre fichier) ---
+  @Column({ type: 'float', nullable: true })
+  prixMedicament: number; // ✅ Ajouté
+
+  @Column({ type: 'float', nullable: true })
+  fraisLivraison: number; // ✅ Ajouté
+
+  @Column({ type: 'float', nullable: true })
+  totalAPayer: number;    // ✅ Ajouté
+
+  // --- PARTIE PHARMACIE (Manquait) ---
+  @Column({ nullable: true })
+  pharmacieId: string;    // ✅ Ajouté
+
+  @Column({ nullable: true })
+  pharmacieNom: string;   // ✅ Ajouté
+
+  // Position GPS de la pharmacie (Objet JSON)
+  @Column({ type: 'jsonb', nullable: true })
+  positionPharmacie: { lat: number; lon: number }; // ✅ Ajouté
+
+  // --- PARTIE LIVRAISON ---
+  // Position GPS du livreur en temps réel (Objet JSON)
+  @Column({ type: 'jsonb', nullable: true })
+  positionLivreur: { lat: number; lon: number };   // ✅ Ajouté
+
+  // --- HUB ---
+  @Column({ type: 'int', nullable: true })
+  hubId: number; 
+
+  @Column({ nullable: true })
+  hubNom: string; // ✅ Ajouté
 
   // --- RELATIONS ---
-  
-  // Le Client qui a commandé (Optionnel si commande anonyme, mais recommandé)
   @ManyToOne(() => User, { nullable: true })
   client: User;
 
   @Column({ nullable: true })
   clientId: string;
 
-  // Le Livreur assigné
   @ManyToOne(() => User, { nullable: true })
   livreur: User;
 
   @Column({ nullable: true })
   livreurId: string;
-
-  // ✅ CORRECTION DE L'ERREUR ICI
-  // On définit explicitement que hubId est un nombre (ou null)
-  @Column({ type: 'int', nullable: true })
-  hubId: number; 
 
   @CreateDateColumn()
   dateCreation: Date;
