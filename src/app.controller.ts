@@ -1,11 +1,22 @@
-import { Controller, Get, Render, Query } from '@nestjs/common'; // ✅ Ajout de Query
+import { Controller, Get, Render, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  // 1. PAGE D'ACCUEIL (Landing Page)
+  // ==========================================================
+  // 1. POLITIQUE DE CONFIDENTIALITÉ (Lien pour les Stores)
+  // ==========================================================
+  @Get('politique')
+  @Render('politique') // Rend le fichier views/politique.hbs
+  getPolitique() {
+    return { title: 'Politique de Confidentialité - PharmaCi' };
+  }
+
+  // ==========================================================
+  // 2. PAGE D'ACCUEIL (Landing Page)
+  // ==========================================================
   @Get()
   @Render('landing') // views/landing.hbs
   root() {
@@ -15,22 +26,27 @@ export class AppController {
     };
   }
 
-  // 2. PAGE MINISTÈRE (Admin)
-  // C'est le lien discret que nous avons mis dans le footer
+  // ==========================================================
+  // 3. PAGE MINISTÈRE (Admin)
+  // ==========================================================
   @Get('admin')
   @Render('admin') // views/admin.hbs
   admin() {
     return { title: 'Administration Ministère' };
   }
 
-  // 3. ESPACE PHARMACIEN
+  // ==========================================================
+  // 4. ESPACE PHARMACIEN (Dashboard)
+  // ==========================================================
   @Get('dashboard')
   @Render('index') // views/index.hbs
   dashboard() {
     return { title: 'Espace Pharmacien' };
   }
 
-  // 4. ESPACE LIVREUR
+  // ==========================================================
+  // 5. ESPACE LIVREUR
+  // ==========================================================
   @Get('livreur-dashboard')
   @Render('livreur') // views/livreur.hbs
   livreur(@Query('livreurId') livreurId: string) {

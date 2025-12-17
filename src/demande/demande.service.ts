@@ -18,39 +18,42 @@ export class DemandeService {
   ) {}
 
   // =================================================================
-  // 1. CRÉATION D'UNE DEMANDE (CLIENT MOBILE)
+  // 1. CRÉATION D'UNE DEMANDE (CLIENT MOBILE) AVEC DISPATCHING
   // =================================================================
   async creerDemande(medicament: string, lat: number, lon: number, paiement: string = 'ESPECES', pointDeRepere: string = '', priorite: 'STANDARD' | 'URGENT' = 'STANDARD') {
-    // A. Recherche du médicament
+    // A. Recherche du médicament pour enrichir la demande
     const resultatsRecherche = await this.medicamentService.rechercher(medicament);
     const medicamentTrouve: any = resultatsRecherche.hits?.[0] || {};
     
-    // B. Génération du code de retrait
+    // B. Génération d'un code de retrait aléatoire à 4 chiffres
     const codeSecret = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // C. INTELLIGENCE LOGISTIQUE : Trouver le Hub le plus proche
+    // ✅ C. INTELLIGENCE LOGISTIQUE : Dispatching vers le Hub le plus proche [cite: 1, 14]
     const hubProche = await this.hubsService.trouverHubProche(lat, lon);
 
-    // D. Création de l'objet Demande (Utilisation de any pour éviter les erreurs TS strictes sur Render)
+    // D. Préparation de l'objet (Typé en any pour éviter les erreurs TS strictes de Render) 
     const donneesDemande: any = {
       medicamentId: medicamentTrouve.id ? medicamentTrouve.id.toString() : '0', 
       medicamentNom: medicament,
-      statut: 'EN_ATTENTE',
+      
+      // ✅ Si aucun hub ne couvre la zone, on marque 'HORS_ZONE'
+      statut: hubProche ? 'EN_ATTENTE' : 'HORS_ZONE',
+      
       modePaiement: paiement,
       pointDeRepere: pointDeRepere,
       priorite: priorite,
       codeRetrait: codeSecret, 
       
-      // ✅ HUB
+      // ✅ Assignation des infos du Hub détecté [cite: 1, 14]
       hubId: hubProche ? hubProche.id : null,
       hubNom: hubProche ? hubProche.nom : 'Zone Hors Couverture',
 
-      // ✅ GEOLOCALISATION
+      // ✅ Géolocalisation client [cite: 1]
       positionClient: { type: 'Point', coordinates: [lon, lat] },
       lat: lat,
       lon: lon,
       
-      // ✅ INITIALISATION DES CHAMPS OBLIGATOIRES
+      // ✅ Initialisations obligatoires pour la base de données [cite: 1]
       positionLivreur: null,
       positionPharmacie: null,
       pharmacieId: null,
@@ -61,7 +64,16 @@ export class DemandeService {
     };
 
     const nouvelleDemande = this.repoDemande.create(donneesDemande);
-    return await this.repoDemande.save(nouvelleDemande);
+    const demandeSauvegardee = await this.repoDemande.save(nouvelleDemande);
+
+    // ✅ Correction des Logs pour éviter les erreurs TS de type "undefined" 
+    if (!hubProche) {
+      console.log(`⚠️ Alerte : Demande créée hors zone de couverture.`);
+    } else {
+      console.log(`📍 Demande assignée au hub : ${hubProche.nom}`);
+    }
+
+    return demandeSauvegardee;
   }
 
   // =================================================================

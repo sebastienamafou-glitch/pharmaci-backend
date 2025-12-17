@@ -10,7 +10,6 @@ export class HubsService {
     private hubRepo: Repository<Hub>,
   ) {}
 
-  // Créer un hub (Admin)
   async create(nom: string, lat: number, lon: number, rayon: number) {
     const hub = this.hubRepo.create({ nom, lat, lon, rayonKm: rayon });
     return this.hubRepo.save(hub);
@@ -20,8 +19,7 @@ export class HubsService {
     return this.hubRepo.find({ where: { isActive: true } });
   }
 
-  // 🧠 L'ALGORITHME DE DISPATCH
-  // Trouve le hub le plus proche d'une position donnée
+  // 🧠 L'ALGORITHME DE DISPATCH OPTIMISÉ
   async trouverHubProche(lat: number, lon: number): Promise<Hub | null> {
     const hubs = await this.findAll();
     let plusProche: Hub | null = null;
@@ -29,18 +27,28 @@ export class HubsService {
 
     for (const hub of hubs) {
       const dist = this.calculerDistance(lat, lon, hub.lat, hub.lon);
-      // Si on est dans le rayon du hub et qu'il est le plus proche trouvé
+      
+      // ✅ LOGIQUE : On vérifie si la distance est dans le rayonKm du Hub
+      // ET si ce hub est plus proche que le précédent trouvé
       if (dist <= hub.rayonKm && dist < distanceMin) {
         distanceMin = dist;
         plusProche = hub;
       }
     }
+    
+    // Log pour debug en production sur Render
+    if (!plusProche) {
+      console.log(`⚠️ Aucun Hub trouvé pour la position [${lat}, ${lon}]`);
+    } else {
+      console.log(`📍 Hub assigné : ${plusProche.nom} (${distanceMin.toFixed(2)} km)`);
+    }
+
     return plusProche;
   }
 
   // Formule de Haversine (Calcul distance GPS en Km)
   private calculerDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371; // Rayon moyen de la Terre en km
     const dLat = this.deg2rad(lat2 - lat1);
     const dLon = this.deg2rad(lon2 - lon1);
     const a =
