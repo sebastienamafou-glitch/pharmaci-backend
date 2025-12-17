@@ -10,33 +10,50 @@ export class PharmacieService {
     private repo: Repository<Pharmacie>,
   ) {}
 
-  // 1. Ajouter une pharmacie (pour peupler la base)
-  async creer(nom: string, adresse: string, lat: number, lon: number) {
+  // =================================================================
+  // 1. CRÉATION D'UNE PHARMACIE (ADMIN / SEED)
+  // =================================================================
+  async creer(nom: string, lat: number, lon: number, tel: string = '') {
     const pharma = this.repo.create({
       nom,
-      adresse,
+      telephone: tel,
+      // PostGIS attend l'ordre [Longitude, Latitude] pour un Point
+      position: { type: 'Point', coordinates: [lon, lat] },
       estDeGarde: false,
-      position: {
-        type: 'Point',
-        coordinates: [lon, lat], // Attention : PostGIS c'est [Longitude, Latitude]
-      },
     });
-    return this.repo.save(pharma);
+    return await this.repo.save(pharma);
   }
 
-  // 2. LA fonctionnalité clé : Trouver autour de moi
-  async trouverAutour(lat: number, lon: number, rayonMetres: number = 5000) {
-    // Cette requête magique utilise la géométrie sphérique de la Terre
+  // =================================================================
+  // 2. RECHERCHE GÉOGRAPHIQUE (RAYON EN MÈTRES)
+  // =================================================================
+  async trouverProches(lat: number, lon: number, rayonMetres: number = 10000) {
     return this.repo
-      .createQueryBuilder('p')
+      .createQueryBuilder('pharmacie')
       .where(
+        // 💡 ASTUCE PRO : On cast (::geography) à la volée pour calculer en mètres
         `ST_DWithin(
-          p.position, 
-          ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), 
+          pharmacie.position::geography, 
+          ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 
           :rayon
-        )`
+        )`,
+        { lon, lat, rayon: rayonMetres } 
       )
-      .setParameters({ lat, lon, rayon: rayonMetres })
+      .orderBy(
+        // On trie du plus proche au plus loin
+        `ST_Distance(
+          pharmacie.position::geography, 
+          ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
+        )`, 
+        'ASC'
+      )
       .getMany();
+  }
+
+  // =================================================================
+  // 3. LISTER TOUT (SIMPLE)
+  // =================================================================
+  async listerToutes() {
+    return this.repo.find();
   }
 }

@@ -1,27 +1,19 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Publicite } from './publicite.entity';
+import { PubliciteService } from './publicite.service'; // ✅ Import du Service
 
 @Controller('publicites')
 export class PubliciteController {
-  constructor(
-    @InjectRepository(Publicite)
-    private pubRepo: Repository<Publicite>,
-  ) {}
+  constructor(private readonly service: PubliciteService) {} // ✅ Injection du Service
 
-  // Récupérer les pubs actives pour l'app mobile (Public)
+  // Récupérer les pubs actives
   @Get()
   async getPublicites() {
-    return this.pubRepo.find({
-      where: { isActive: true },
-      order: { ordre: 'ASC' },
-    });
+    return this.service.trouverPubsActives();
   }
 
-  // Créer une pub (Pour test ou Admin)
+  // Créer une pub
   @Post()
   async create(@Body() body: any) {
-    return this.pubRepo.save(body);
+    return this.service.creer(body);
   }
 }

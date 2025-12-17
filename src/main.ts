@@ -2,34 +2,36 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import hbs = require('hbs'); 
-import { ValidationPipe } from '@nestjs/common'; // ✅ 1. IMPORT NECESSAIRE
+import * as hbs from 'hbs'; // Assurez-vous d'avoir: npm install hbs
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   
-  // ✅ 2. ACTIVATION DE LA SÉCURITÉ (VALIDATION DES ENTRÉES)
+  // 1. SÉCURITÉ & VALIDATION
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // 🛡️ Sécurité : Supprime automatiquement tout champ non déclaré dans le DTO
-    forbidNonWhitelisted: true, // 🛡️ Sécurité : Renvoie une erreur si un champ inconnu est détecté
-    transform: true, // 🛠️ Pratique : Convertit les types (ex: "id": "123" devient le nombre 123)
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
   }));
 
+  // 2. CORS (Autorise le mobile à parler au backend)
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // ✅ Cette ligne est cruciale pour que /js/dashboard.js fonctionne
+  // 3. VUES & FICHIERS STATIQUES (Dashboard)
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('hbs');
-
-  // Helper HBS conservé
   hbs.registerHelper('eq', (a, b) => a === b);
 
-  await app.listen(3000, '0.0.0.0');
+  // 4. PORT DYNAMIQUE (CRITIQUE POUR RENDER)
+  const port = process.env.PORT || 3000;
+  await app.listen(port, '0.0.0.0');
+  
+  console.log(`🚀 Serveur lancé sur le port ${port}`);
 }
 bootstrap();

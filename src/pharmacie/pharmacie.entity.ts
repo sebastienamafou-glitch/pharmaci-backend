@@ -1,25 +1,24 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Pharmacie {
-  @PrimaryGeneratedColumn('uuid') // On utilise des ID uniques (UUID) c'est plus pro
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   nom: string;
 
   @Column({ nullable: true })
-  adresse: string;
+  telephone: string;
 
   @Column({ default: false })
-  estDeGarde: boolean; // Pour savoir si elle est ouverte la nuit
+  estDeGarde: boolean; // Utile pour filtrer les pharmacies de nuit
 
-  // C'est ici le secret de PostGIS : on stocke un point GPS
+  // 📍 Géolocalisation PostGIS
   @Column({
     type: 'geometry',
     spatialFeatureType: 'Point',
-    srid: 4326, // Le standard GPS mondial
-    nullable: true,
+    srid: 4326, // Standard GPS
   })
-  position: any; // Contiendra { type: 'Point', coordinates: [lon, lat] }
+  position: any; 
 }
